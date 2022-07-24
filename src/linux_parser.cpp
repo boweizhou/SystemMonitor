@@ -325,6 +325,9 @@ long LinuxParser::UpTime(int pid) {
     std::istringstream linestream(line);
     for (int i; i <22 ; i ++){
       linestream >> uptime_str;
+      if (uptime_str.empty()){
+        uptime_str = "0";
+      }
     }
     uptime = stol(uptime_str)/sysconf(_SC_CLK_TCK);
   }
