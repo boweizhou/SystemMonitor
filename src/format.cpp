@@ -14,12 +14,12 @@ using std::setw;
 string Format::ElapsedTime(long seconds) { 
     int hours, minutes, secondsRemaining;
     hours = seconds / 3600;
-    minutes = (seconds - (hours*36000)) / 60;
+    minutes = (seconds - (hours*3600)) / 60;
     secondsRemaining = seconds - (hours * 3600) - (minutes*60);
 
     std::ostringstream elapsedTime;
 
-    elapsedTime << setw(2) << std::setfill('0') << hours << ":" << setw(2) << std::setfill('0') << minutes << setw(2) << std::setfill('0') << secondsRemaining; 
+    elapsedTime << setw(2) << std::setfill('0') << hours << ":" << setw(2) << std::setfill('0') << minutes << ":" <<  setw(2) << std::setfill('0') << secondsRemaining; 
     
     return elapsedTime.str();
 

@@ -69,24 +69,25 @@ vector<int> LinuxParser::Pids() {
   return pids;
 }
 
-// TODO: Read and return the system memory utilization
+// Read and return the system memory utilization
 float LinuxParser::MemoryUtilization() { 
   float MemTotal, MemFree, value;
   string key,line;
   std::ifstream stream(kProcDirectory+ kMeminfoFilename);
   if (stream.is_open()){
-    std::getline(stream, line);
-    std::istringstream linestream(line);
-    while (linestream >> key >> value) {
-      if (key == "MemTotal:") { MemTotal = value;}
-      if (key == "MemFree:") { MemFree = value;}
+    while (std::getline(stream,line)){
+      std::istringstream  linestream(line);
+      linestream >> key >> value;
+      if (key == filterMemTotalString) { MemTotal = value;}
+      if (key == filterMemFreeString) { MemFree = value;}
     }
   }
+  stream.close();
   return (MemTotal - MemFree)/MemTotal;
 }
 
 
-// TODO: Read and return the system uptime
+// Read and return the system uptime
 long LinuxParser::UpTime() {
   string line;
   long uptime = 0;
@@ -97,88 +98,12 @@ long LinuxParser::UpTime() {
     std::istringstream linestream(line);
     linestream >> uptime;
   }
+  stream.close();
   return uptime;
  }
 
-// TODO: Read and return the number of jiffies for the system
-long LinuxParser::Jiffies() { 
-  long TimeInSeconds = UpTime();
-  long TimeInJiffies = TimeInSeconds * sysconf(_SC_CLK_TCK);
-  return TimeInJiffies; 
-}
 
-// TODO: Read and return the number of active jiffies for a PID
-// REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::ActiveJiffies(int pid) {
-  long test;
-  //  string line, data;
-  //  long TotalTimeInJiffies {0};
-  //  int count {0};
-  //  std::ifstream myActiveJiffies(kProcDirectory + to_string(pid) + kStatFilename);
-  //  if(myActiveJiffies.is_open()){
-  //    getline(myActiveJiffies, line);
-  //    std::istringstream myStream(line);
-  //    while(myStream >> data){
-  //      if(count == 13 || count == 14 || count == 15 || count == 16 || count == 21){
-  //        TotalTimeInJiffies += stol(data);
-  //        }
-  //        count++;
-  //       }
-    // }
-  
-  return test;
-
- }
-
-// TODO: Read and return the number of active jiffies for the system
-long LinuxParser::ActiveJiffies() {
-  // string line, data;
-  // long TimeInJiffies, TimeInSecs;
-  // int count{0};
-  // std::ifstream ifs(kProcDirectory + kStatFilename);
-
-  // if (ifs.is_open()){
-  //   getline(ifs, line);
-  //   std::istringstream linestream(line);
-
-  //    while(ifs >> data){
-  //      if(count == 0){
-  //        continue;
-  //      }else if(count == 1||count == 2||count == 3||count == 6 || count == 7 || count == 8)
-  //      {
-  //       TimeInJiffies += stol(data);
-  //      }
-  //      count ++;
-  //    }
-  //    TimeInSecs = TimeInJiffies / sysconf(_SC_CLK_TCK);  
-  // }
-  // return TimeInSecs;
-  long test = 0;
-  return test;
-}
-
-// TODO: Read and return the number of idle jiffies for the system
-long LinuxParser::IdleJiffies() {
-  // string data,line;
-  // long IdleTimeInJiffies{};
-  // int count{0};
-  // std::ifstream ifs(kProcDirectory + kStatFilename);
-
-  // if(ifs.is_open()){
-  //   getline(ifs, line);
-  //   std::istringstream linestream(line);
-  //   while(linestream >> data){
-  //     if (count == 4 || count == 5){
-  //       IdleTimeInJiffies += stol(data);
-  //     }
-  //   }
-  // }
-  // return IdleTimeInJiffies;
-  long test;
-  return test;
-}
-
-// TODO: Read and return CPU utilization
+// Read and return CPU utilization
 vector<float> LinuxParser::CpuUtilization(int pid) {
   string line, time_str;
   vector<float> time;
@@ -188,18 +113,18 @@ vector<float> LinuxParser::CpuUtilization(int pid) {
     std::istringstream linestream(line);
     for (int i=0; i<22; i++){
       linestream >> time_str;
-      if (i==13 | i==14 | i==15 | i==16 | i==21){
+      if ((i==13) | (i==14) | (i==15) | (i==16) | (i==21)){
         time.push_back(stof(time_str));
       }
     }  
   }
-
+  stream.close();
   return time;
 }
   
 
 
-// TODO: Read and return the total number of processes
+// Read and return the total number of processes
 int LinuxParser::TotalProcesses() {
   string line, key, value;
   int TotalNumberProcesses {0};
@@ -209,17 +134,18 @@ int LinuxParser::TotalProcesses() {
   	while(getline(stream, line)){
     	std::istringstream linestream(line);
       while(linestream >> key >> value){
-        if(key == "processes"){
+        if(key == filterProcesses){
         	TotalNumberProcesses = stoi(value);
           break;
         }
       }
     }
   }
+  stream.close();
   return TotalNumberProcesses;
 }
 
-// TODO: Read and return the number of running processes
+// Read and return the number of running processes
 int LinuxParser::RunningProcesses() {
   string line, key, value;
   int TotalNumberRunningPro {};
@@ -229,17 +155,18 @@ int LinuxParser::RunningProcesses() {
   	while(getline(stream, line)){
     	std::istringstream linestream(line);
       while(linestream >> key >> value){
-        if(key == "procs_running"){
+        if(key == filterRunningProcesses){
         	TotalNumberRunningPro = stoi(value);
           break;
         }
       }
     }
   }
+  stream.close();
   return TotalNumberRunningPro;
 }
 
-// TODO: Read and return the command associated with a process
+// Read and return the command associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
 string LinuxParser::Command(int pid) {
   string CommandLine;
@@ -247,10 +174,11 @@ string LinuxParser::Command(int pid) {
   if (stream.is_open()){
     getline(stream,CommandLine);
   }
+  stream.close();
   return CommandLine;
 }
 
-// TODO: Read and return the memory used by a process
+// Read and return the memory used by a process
 // REMOVE: [[maybe_unused]] once you define the function
 string LinuxParser::Ram(int pid){
   string line, key, value;
@@ -261,18 +189,18 @@ string LinuxParser::Ram(int pid){
   	while(getline(stream, line)){
     	std::istringstream linestream(line);
       	while(linestream >> key >> value){
-        	if(key == "VmSize:"){
+        	if(key == filterProcMem){
             	ram = (stoi(value)/1000);
             }
         }
     }
   }
+  stream.close();
   return to_string(ram); 
-
 } 
 
 
-// TODO: Read and return the user ID associated with a process
+// Read and return the user ID associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
 string LinuxParser::Uid(int pid) {
   string line, key, value;
@@ -283,16 +211,17 @@ string LinuxParser::Uid(int pid) {
   	while(getline(stream, line)){
       	std::istringstream linestream(line);
         while(linestream >> key >> value){
-        	if(key == "Uid"){
+        	if(key == filterUID){
             	Uid = value;
             }
         }
     }
   }
+  stream.close();
   return Uid;
  }
 
-// TODO: Read and return the user associated with a process
+// Read and return the user associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
 string LinuxParser::User(int pid) {
   string line, user, pid_, key;
@@ -309,11 +238,19 @@ string LinuxParser::User(int pid) {
         }
     }
   }
-  
+  stream.close();
   return user;
 }
 
-// TODO: Read and return the uptime of a process
+// bool Is_number(const string &s)
+// {
+//   for (uint i = 0; i < s.length(); i++) // for each char in string,
+//     if (!((s[i] >= '0' && s[i] <= '9') || (s[i] == ' ')))
+//       return false;
+//   return true;
+// }
+
+// Read and return the uptime of a process
 // REMOVE: [[maybe_unused]] once you define the function
 long LinuxParser::UpTime(int pid) {
   string line, uptime_str;
@@ -323,13 +260,21 @@ long LinuxParser::UpTime(int pid) {
   if(stream.is_open()){
     getline(stream, line);
     std::istringstream linestream(line);
-    for (int i; i <22 ; i ++){
+    for (int i = 0; i <22 ; i ++){
       linestream >> uptime_str;
-      if (uptime_str != ""){
+    }
+    // uptime = stol(uptime_str)/sysconf(_SC_CLK_TCK);
+    if (uptime_str == ""){
+      uptime_str = "0";
+    }
+    for(uint i = 0; i < uptime_str.length();i++){
+      if (((uptime_str[i] >= '0' && uptime_str[i] <= '9'))){
         uptime = stol(uptime_str)/sysconf(_SC_CLK_TCK);
-      }
+      } 
     }
   }
+  stream.close();
   return uptime;
 }
+
 
